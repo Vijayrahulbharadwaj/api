@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Battle</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        .battle {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .pokemon {
+            border: 1px solid #ccc;
+            padding: 15px;
+            width: 200px;
+        }
+
+        .pokemon img {
+            width: 120px;
+            height: 120px;
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pokemon Battle</h1>
+    <button type="button" onclick="startBattle()">Start Battle</button>
+
+    <h2 id="result"></h2>
+
+    <div class="battle">
+        <div id="firstPokemon" class="pokemon"></div>
+        <div id="secondPokemon" class="pokemon"></div>
+    </div>
+
+    <script>
+        const result = document.getElementById("result");
+        const firstCard = document.getElementById("firstPokemon");
+        const secondCard = document.getElementById("secondPokemon");
+
+        function randomPokemonId() {
+            return Math.floor(Math.random() * 1025) + 1;
+        }
+
+        async function getPokemon(id) {
+            const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+
+            if (!response.ok) {
+                throw new Error(`Could not load Pokemon #${id}`);
+            }
+
+            return response.json();
+        }
+
+        function showPokemon(card, pokemon) {
+            const hp = pokemon.stats[0].base_stat;
+
+            card.innerHTML = `
+                <h3>${pokemon.name.toUpperCase()}</h3>
+                <img src="${pokemon.sprites.front_default}" alt="${pokemon.name}">
+                <p>HP: ${hp}</p>
+            `;
+        }
+
+        function getWinner(firstPokemon, secondPokemon) {
+            const firstHp = firstPokemon.stats[0].base_stat;
+            const secondHp = secondPokemon.stats[0].base_stat;
+
+            if (firstHp > secondHp) {
+                return `${firstPokemon.name.toUpperCase()} wins!`;
+            }
+
+            if (secondHp > firstHp) {
+                return `${secondPokemon.name.toUpperCase()} wins!`;
+            }
+
+            return "It's a draw!";
+        }
+
+        async function startBattle() {
+            result.textContent = "Choosing fighters...";
+            firstCard.innerHTML = "";
+            secondCard.innerHTML = "";
+
+            try {
+                const firstPokemon = await getPokemon(randomPokemonId());
+                const secondPokemon = await getPokemon(randomPokemonId());
+
+                showPokemon(firstCard, firstPokemon);
+                showPokemon(secondCard, secondPokemon);
+                result.textContent = getWinner(firstPokemon, secondPokemon);
+            } catch (error) {
+                result.textContent = "The battle could not start.";
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
